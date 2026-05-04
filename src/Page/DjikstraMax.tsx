@@ -440,7 +440,7 @@ export default function DijkstraMax() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6 max-w-2xl mt-[60px] mx-auto">
+<div className="min-h-screen  text-white p-6 max-w-2xl mt-[60px] mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-amber-400">Dijkstra Max - Plus Long Chemin</h1>
 
       {/* Nœuds */}
@@ -519,7 +519,7 @@ export default function DijkstraMax() {
                   : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
               }`}
             >
-              ⚡ Calcul rapide
+              Calcul rapide
             </button>
             <button
               onClick={() => setMode("demo")}
@@ -529,7 +529,7 @@ export default function DijkstraMax() {
                   : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
               }`}
             >
-              📋 Démonstration (tableau)
+               Démonstration (tableau)
             </button>
           </div>
         </div>

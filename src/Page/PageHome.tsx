@@ -37,8 +37,7 @@ function PageHome() {
   };
 
   return (
-    //bg-gradient-to-br
-    <div className="min-h-screen  from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center  py-8 px-4">
+    <div className="min-h-screen  from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center py-8 px-4">
       <div className="max-w-7xl w-full mx-auto">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
           
@@ -189,38 +188,6 @@ function PageHome() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes fadeInRight {
-          from {
-            opacity: 0;
-            transform: translateX(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        .animate-fadeInLeft {
-          animation: fadeInLeft 0.6s ease-out;
-        }
-        
-        .animate-fadeInRight {
-          animation: fadeInRight 0.6s ease-out;
-        }
-      `}</style>
     </div>
   );
 }
