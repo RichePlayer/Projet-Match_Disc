@@ -260,11 +260,37 @@ export default function DijkstraMin() {
   const [result, setResult] = useState<{ distance: number; path: string[] } | null>(null);
   const [steps, setSteps] = useState<DijkstraStep[]>([]);
   const [mode, setMode] = useState<"rapide" | "demo">("rapide");
+  const [editingNode, setEditingNode] = useState<string | null>(null);
+  const [editNodeValue, setEditNodeValue] = useState("");
 
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const dragNodeRef = useRef<string | null>(null);
   const dragOffRef = useRef({ ox: 0, oy: 0 });
   const nodeList = Object.keys(nodes);
+
+  // Charger les données du localStorage au montage
+  useEffect(() => {
+    const savedData = localStorage.getItem("dijkstraMinSession");
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        setNodes(data.nodes);
+        setEdges(data.edges);
+        setStartNode(data.startNode);
+        setEndNode(data.endNode);
+        setFromNode(data.fromNode);
+        setToNode(data.toNode);
+      } catch (e) {
+        console.error("Erreur lors du chargement de la session", e);
+      }
+    }
+  }, []);
+
+  // Sauvegarder les données dans localStorage chaque fois qu'elles changent
+  useEffect(() => {
+    const sessionData = { nodes, edges, startNode, endNode, fromNode, toNode };
+    localStorage.setItem("dijkstraMinSession", JSON.stringify(sessionData));
+  }, [nodes, edges, startNode, endNode, fromNode, toNode]);
 
   function rndPos() {
     const angle = Math.random() * 2 * Math.PI;
@@ -281,6 +307,41 @@ export default function DijkstraMin() {
     if (!endNode) setEndNode(v);
     if (!fromNode) setFromNode(v);
     if (!toNode) setToNode(v);
+  }
+
+  function startEditNode(n: string) {
+    setEditingNode(n);
+    setEditNodeValue(n);
+  }
+
+  function renameNode(oldName: string, newName: string) {
+    if (!newName.trim()) {
+      setEditingNode(null);
+      return;
+    }
+    const v = newName.trim().toUpperCase();
+    if (v === oldName || nodes[v]) {
+      setEditingNode(null);
+      return;
+    }
+    // Renommer le nœud et ses références
+    const newNodes = { ...nodes };
+    newNodes[v] = newNodes[oldName];
+    delete newNodes[oldName];
+    
+    const newEdges = edges.map((e) => ({
+      ...e,
+      from: e.from === oldName ? v : e.from,
+      to: e.to === oldName ? v : e.to,
+    }));
+    
+    setNodes(newNodes);
+    setEdges(newEdges);
+    if (startNode === oldName) setStartNode(v);
+    if (endNode === oldName) setEndNode(v);
+    if (fromNode === oldName) setFromNode(v);
+    if (toNode === oldName) setToNode(v);
+    setEditingNode(null);
   }
 
   function removeNode(n: string) {
@@ -317,6 +378,24 @@ export default function DijkstraMin() {
     setStartNode(""); setEndNode("");
     setFromNode(""); setToNode("");
     clearResults();
+    localStorage.removeItem("dijkstraMinSession");
+  }
+
+  function clearSession() {
+    localStorage.removeItem("dijkstraMinSession");
+    alert("Session nettoyée ✓");
+  }
+
+  function copyToMax() {
+    if (nodeList.length === 0) {
+      alert("Veuillez créer au moins un nœud avant de copier");
+      return;
+    }
+    // Sauvegarder les données dans le localStorage
+    const graphData = { nodes, edges, startNode };
+    localStorage.setItem("graphDataForMax", JSON.stringify(graphData));
+    // Rediriger vers Dijkstra Max
+    window.location.href = "/max";
   }
 
   function loadExample() {
@@ -415,7 +494,7 @@ export default function DijkstraMin() {
 
   return (
     <div className="min-h-screen  text-white p-6 max-w-2xl mt-[60px] mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-blue-400">Dijkstra - Plus Court Chemin</h1>
+      <h1 className="text-2xl font-bold mb-6 text-blue-400">Dijkstra Min - Plus Court Chemin</h1>
 
       {/* Nœuds */}
       <div className="mb-4">
@@ -525,9 +604,18 @@ export default function DijkstraMin() {
           <button onClick={runDijkstra} className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-sm font-medium">
             Calculer chemin
           </button>
+          <button onClick={copyToMax} className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm">Copie vers Max</button>
           <button onClick={clearAll} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">Effacer</button>
         </div>
       )}
+
+      {/* Session sauvegardée */}
+      <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-400">
+        <span>Session automatiquement sauvegardée</span>
+        <button onClick={clearSession} className="ml-3 text-blue-400 hover:text-blue-300 underline">
+          Nettoyer la session
+        </button>
+      </div>
 
       {/* Résultat */}
       {result && (

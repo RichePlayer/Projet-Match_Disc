@@ -75,13 +75,19 @@ function dijkstraMaxWithSteps(nodes: string[], edges: Edge[], start: string) {
     updates: [],
   });
 
-  const queue = [...nodes];
-
-  while (queue.length) {
+  while (visited.size < nodes.length) {
     // Pour Max: on choisit le sommet avec la distance MAXIMALE (non visité)
-    queue.sort((a, b) => dist[b] - dist[a]);
-    const u = queue.shift()!;
-    if (dist[u] === -Infinity) break;
+    let maxNode = "";
+    let maxDist = -Infinity;
+    for (const n of nodes) {
+      if (!visited.has(n) && dist[n] > maxDist) {
+        maxDist = dist[n];
+        maxNode = n;
+      }
+    }
+    
+    if (maxNode === "" || maxDist === -Infinity) break;
+    const u = maxNode;
     visited.add(u);
 
     const updates: DijkstraMaxStep["updates"] = [];
@@ -292,6 +298,46 @@ export default function DijkstraMax() {
   const dragOffRef      = useRef({ ox: 0, oy: 0 });
   const nodeList        = Object.keys(nodes);
 
+  // Charger les données depuis le localStorage si disponibles
+  useEffect(() => {
+    const savedData = localStorage.getItem("graphDataForMax");
+    if (savedData) {
+      try {
+        const graphData = JSON.parse(savedData);
+        setNodes(graphData.nodes);
+        setEdges(graphData.edges);
+        setStartNode(graphData.startNode);
+        setEndNode(Object.keys(graphData.nodes)[Object.keys(graphData.nodes).length - 1] || graphData.startNode);
+        // Nettoyer le localStorage après utilisation
+        localStorage.removeItem("graphDataForMax");
+      } catch (e) {
+        console.error("Erreur lors du chargement des données du graphe", e);
+      }
+    } else {
+      // Sinon, charger depuis la session locale
+      const sessionData = localStorage.getItem("dijkstraMaxSession");
+      if (sessionData) {
+        try {
+          const data = JSON.parse(sessionData);
+          setNodes(data.nodes);
+          setEdges(data.edges);
+          setStartNode(data.startNode);
+          setEndNode(data.endNode);
+          setFromNode(data.fromNode);
+          setToNode(data.toNode);
+        } catch (e) {
+          console.error("Erreur lors du chargement de la session", e);
+        }
+      }
+    }
+  }, []);
+
+  // Sauvegarder les données dans localStorage chaque fois qu'elles changent
+  useEffect(() => {
+    const sessionData = { nodes, edges, startNode, endNode, fromNode, toNode };
+    localStorage.setItem("dijkstraMaxSession", JSON.stringify(sessionData));
+  }, [nodes, edges, startNode, endNode, fromNode, toNode]);
+
   function rndPos() {
     const angle = Math.random() * 2 * Math.PI;
     const r = 60 + Math.random() * 100;
@@ -343,6 +389,12 @@ export default function DijkstraMax() {
     setStartNode(""); setEndNode("");
     setFromNode(""); setToNode("");
     clearResults();
+    localStorage.removeItem("dijkstraMaxSession");
+  }
+
+  function clearSession() {
+    localStorage.removeItem("dijkstraMaxSession");
+    alert("Session nettoyée ✓");
   }
 
   function loadExample() {
@@ -554,6 +606,14 @@ export default function DijkstraMax() {
           <button onClick={clearAll} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">Effacer</button>
         </div>
       )}
+
+      {/* Session sauvegardée */}
+      <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-400">
+        <span>Session automatiquement sauvegardée</span>
+        <button onClick={clearSession} className="ml-3 text-blue-400 hover:text-blue-300 underline">
+          Nettoyer la session
+        </button>
+      </div>
 
       {/* Résultat */}
       {result && (
